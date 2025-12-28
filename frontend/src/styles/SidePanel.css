@@ -156,18 +156,19 @@
     border-radius: 8px;
 }
 
-.star {
+.side-panel .star-rating .star {
     cursor: pointer;
     color: #d1d5db;
-    font-size: 36px;
+    font-size: 36px !important;
+    /* Force override */
     transition: color 0.15s ease;
 }
 
-.star:hover {
+.side-panel .star-rating .star:hover {
     color: #fbbf24;
 }
 
-.star.active {
+.side-panel .star-rating .star.active {
     color: #f59e0b;
 }
 
