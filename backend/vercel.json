@@ -1,12 +1,7 @@
+```json
 {
     "version": 2,
     "buildCommand": "npm install && npm run build",
-    "outputDirectory": "dist",
-    "functions": {
-        "api/**/*.js": {
-            "runtime": "@vercel/node@3"
-        }
-    },
     "rewrites": [
         {
             "source": "/(.*)",
@@ -14,3 +9,4 @@
         }
     ]
 }
+```
