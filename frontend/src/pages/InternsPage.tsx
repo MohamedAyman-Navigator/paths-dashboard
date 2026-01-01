@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import '../styles/InternsPage.css';
 
@@ -12,7 +11,6 @@ interface Intern {
 }
 
 const InternsPage: React.FC = () => {
-    const { user } = useAuth();
     const [interns, setInterns] = useState<Intern[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
