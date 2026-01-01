@@ -52,6 +52,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
+        const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
         const token = jwt.sign(
             {
                 id: user.id,
@@ -59,7 +60,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
                 role: user.role,
             },
             secret,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+            { expiresIn }
         );
 
         // Set httpOnly cookie
@@ -89,7 +90,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
  * Logout controller
  * Clears the authentication cookie
  */
-export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
+export const logout = async (_req: AuthRequest, res: Response): Promise<void> => {
     res.clearCookie('token');
     res.json({ message: 'Logged out successfully' });
 };
