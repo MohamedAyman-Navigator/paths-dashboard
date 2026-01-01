@@ -50,76 +50,77 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
             console.error('JWT_SECRET not configured');
             res.status(500).json({ error: 'Server configuration error' });
             return;
-
-            const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-            const token = jwt.sign(
-                {
-                    id: user.id,
-                    email: user.email,
-                    role: user.role,
-                },
-                secret as string,
-                { expiresIn: expiresIn }
-            );
-
-            // Set httpOnly cookie
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            });
-
-            // Return user info (without password)
-            res.json({
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    role: user.role,
-                    full_name: user.full_name,
-                },
-            });
-        } catch (error) {
-            console.error('Login error:', error);
-            res.status(500).json({ error: 'Login failed' });
         }
-    };
 
-    /**
-     * Logout controller
-     * Clears the authentication cookie
-     */
-    export const logout = async (_req: AuthRequest, res: Response): Promise<void> => {
-        res.clearCookie('token');
-        res.json({ message: 'Logged out successfully' });
-    };
+        const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            },
+            secret as string,
+            { expiresIn: expiresIn }
+        );
 
-    /**
-     * Get current user controller
-     * Returns current authenticated user information
-     */
-    export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
-        try {
-            if (!req.user) {
-                res.status(401).json({ error: 'Not authenticated' });
-                return;
-            }
+        // Set httpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
 
-            // Fetch full user details from database
-            const result = await query(
-                `SELECT id, email, role, full_name, profile_photo_url, bio, department, created_at 
+        // Return user info (without password)
+        res.json({
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                full_name: user.full_name,
+            },
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+};
+
+/**
+ * Logout controller
+ * Clears the authentication cookie
+ */
+export const logout = async (_req: AuthRequest, res: Response): Promise<void> => {
+    res.clearCookie('token');
+    res.json({ message: 'Logged out successfully' });
+};
+
+/**
+ * Get current user controller
+ * Returns current authenticated user information
+ */
+export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ error: 'Not authenticated' });
+            return;
+        }
+
+        // Fetch full user details from database
+        const result = await query(
+            `SELECT id, email, role, full_name, profile_photo_url, bio, department, created_at 
        FROM users WHERE id = $1`,
-                [req.user.id]
-            );
+            [req.user.id]
+        );
 
-            if (result.rows.length === 0) {
-                res.status(404).json({ error: 'User not found' });
-                return;
-            }
-
-            res.json({ user: result.rows[0] });
-        } catch (error) {
-            console.error('Get current user error:', error);
-            res.status(500).json({ error: 'Failed to fetch user data' });
+        if (result.rows.length === 0) {
+            res.status(404).json({ error: 'User not found' });
+            return;
         }
-    };
+
+        res.json({ user: result.rows[0] });
+    } catch (error) {
+        console.error('Get current user error:', error);
+        res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+};
