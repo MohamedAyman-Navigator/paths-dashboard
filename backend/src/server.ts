@@ -20,11 +20,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads directory if it doesn't exist
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log(`📁 Created uploads directory: ${uploadDir}`);
+// Create uploads directory if it doesn't exist (only in non-serverless environment)
+if (!process.env.VERCEL) {
+    const uploadDir = process.env.UPLOAD_DIR || './uploads';
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log(`📁 Created uploads directory: ${uploadDir}`);
+    }
 }
 
 // Middleware
@@ -38,7 +40,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Serve uploaded files statically (with authentication handled in route)
-app.use('/uploads', express.static(path.join(__dirname, '..', uploadDir)));
+if (!process.env.VERCEL) {
+    const uploadDir = process.env.UPLOAD_DIR || './uploads';
+    app.use('/uploads', express.static(path.join(__dirname, '..', uploadDir)));
+}
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -73,28 +78,31 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     });
 });
 
-// Start server
-const startServer = async () => {
-    try {
-        // Test database connection
-        const dbConnected = await testConnection();
-        if (!dbConnected) {
-            console.error('❌ Failed to connect to database. Please check your configuration.');
+// Start server (only when not in Vercel serverless environment)
+if (!process.env.VERCEL) {
+    const startServer = async () => {
+        try {
+            // Test database connection
+            const dbConnected = await testConnection();
+            if (!dbConnected) {
+                console.error('❌ Failed to connect to database. Please check your configuration.');
+                process.exit(1);
+            }
+
+            app.listen(PORT, () => {
+                console.log(`\n🚀 Server running on port ${PORT}`);
+                console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+                console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+                console.log(`\n✅ Intern Management System API is ready!\n`);
+            });
+        } catch (error) {
+            console.error('Failed to start server:', error);
             process.exit(1);
         }
+    };
 
-        app.listen(PORT, () => {
-            console.log(`\n🚀 Server running on port ${PORT}`);
-            console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
-            console.log(`\n✅ Intern Management System API is ready!\n`);
-        });
-    } catch (error) {
-        console.error('Failed to start server:', error);
-        process.exit(1);
-    }
-};
+    startServer();
+}
 
-startServer();
-
+// Export for Vercel serverless
 export default app;
