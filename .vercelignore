@@ -1,6 +1,6 @@
-backend
-database
+# Exclude database scripts and docs
+database/
 *.md
-.git
+!README.mdgit
 .gitignore
 setup-database.bat
