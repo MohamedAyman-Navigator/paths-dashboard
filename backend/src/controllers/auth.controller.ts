@@ -53,14 +53,15 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
         }
 
         const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+        // @ts-ignore - JWT typing issue with expiresIn
         const token = jwt.sign(
             {
                 id: user.id,
                 email: user.email,
                 role: user.role,
             },
-            secret as string,
-            { expiresIn: expiresIn }
+            secret,
+            { expiresIn }
         );
 
         // Set httpOnly cookie
